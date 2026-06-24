@@ -361,20 +361,22 @@ const AdminDashboard: React.FC = () => {
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="flex items-center gap-3.5">
               <h2 className="text-xl font-black tracking-tight">Student Approval Queue</h2>
-              {pendingCount > 0 && (
-                <button
-                  onClick={() => {
-                    if (window.confirm(`Are you sure you want to approve all ${pendingCount} pending student registration requests?`)) {
-                      approveAllMutation.mutate();
-                    }
-                  }}
-                  disabled={approveAllMutation.isPending}
-                  className="rounded-lg bg-emerald-600 hover:bg-emerald-500 px-3 py-1.5 text-xs font-bold text-white transition disabled:opacity-50 flex items-center gap-1 cursor-pointer animate-none"
-                  title="Approve all pending students"
-                >
-                  <Check className="h-3.5 w-3.5" /> Approve All ({pendingCount})
-                </button>
-              )}
+              <button
+                onClick={() => {
+                  if (window.confirm(`Are you sure you want to approve all ${pendingCount} pending student registration requests?`)) {
+                    approveAllMutation.mutate();
+                  }
+                }}
+                disabled={approveAllMutation.isPending || pendingCount === 0}
+                className={`rounded-lg px-3 py-1.5 text-xs font-bold text-white transition flex items-center gap-1 animate-none ${
+                  pendingCount > 0 
+                    ? 'bg-emerald-600 hover:bg-emerald-500 cursor-pointer' 
+                    : 'bg-slate-200 dark:bg-slate-800 text-slate-450 dark:text-slate-600 cursor-not-allowed opacity-50'
+                }`}
+                title={pendingCount > 0 ? "Approve all pending students" : "No pending students to approve"}
+              >
+                <Check className="h-3.5 w-3.5" /> Approve All {pendingCount > 0 ? `(${pendingCount})` : ''}
+              </button>
             </div>
             
             {/* Search filter input */}
