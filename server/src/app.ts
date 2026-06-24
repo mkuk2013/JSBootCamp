@@ -92,10 +92,15 @@ app.get('/', (req: Request, res: Response) => {
 app.use(errorHandler);
 
 // Start Server
-app.listen(PORT, async () => {
-  console.log(`[Server] running on http://localhost:${PORT}`);
-  // Initialize and seed database tables
-  await initializeDatabase();
-});
+if (process.env.VERCEL) {
+  // Initialize database for serverless environment on startup
+  initializeDatabase().catch(err => console.error('[Database] initialization failed:', err));
+} else {
+  app.listen(PORT, async () => {
+    console.log(`[Server] running on http://localhost:${PORT}`);
+    // Initialize and seed database tables
+    await initializeDatabase();
+  });
+}
 
 export default app;
