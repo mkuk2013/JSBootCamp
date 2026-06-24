@@ -1,0 +1,30 @@
+services:
+  - type: web
+    name: js-bootcamp-backend
+    runtime: node
+    rootDir: server
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 5000
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_EXPIRES_IN
+        value: 7d
+      - key: CLIENT_URL
+        placeholder: "The URL of your frontend (e.g., https://your-site.netlify.app)"
+      - key: TURSO_DATABASE_URL
+        placeholder: "libsql://your-database-name.turso.io"
+      - key: TURSO_AUTH_TOKEN
+        placeholder: "your_turso_db_auth_token_here"
+      - key: BREVO_API_KEY
+        placeholder: "your_brevo_api_key_here (optional)"
+      - key: BREVO_SENDER_EMAIL
+        value: "noreply@jsbootcamp.com"
+      - key: BREVO_SENDER_NAME
+        value: "JS Bootcamp Team"
+      - key: GEMINI_API_KEY
+        placeholder: "your_gemini_api_key_here (optional)"
