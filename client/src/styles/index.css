@@ -81,11 +81,13 @@
 .text-js-gradient {
   background: linear-gradient(135deg, #F7DF1E 0%, #e0ca1b 100%);
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 .text-premium-gradient {
   background: linear-gradient(135deg, #F7DF1E 0%, #ff9500 60%, #ff3b30 100%);
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 

@@ -26,8 +26,19 @@ const PORT = process.env.PORT || 5000;
 app.use(helmet({
   crossOriginResourcePolicy: { policy: 'cross-origin' }
 }));
+
+const allowedOrigins = process.env.CLIENT_URL
+  ? process.env.CLIENT_URL.replace(/[\r\n'"]/g, '').split(',').map(o => o.trim())
+  : ['*'];
+
 app.use(cors({
-  origin: process.env.CLIENT_URL || '*',
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes('*') || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(null, false);
+    }
+  },
   credentials: true,
 }));
 
