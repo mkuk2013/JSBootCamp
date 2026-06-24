@@ -4,7 +4,8 @@ import { useQuery, useMutation } from '@tanstack/react-query';
 import { 
   Users, Sparkles, BookOpen, Settings, Check, 
   Database, Mail, Cpu, RefreshCw, Search, ShieldCheck, 
-  ArrowRight, Activity, AlertTriangle, Key, Trash2, X, Eye, EyeOff
+  ArrowRight, Activity, AlertTriangle, Key, Trash2, X, Eye, EyeOff,
+  FileCode2, CheckCircle2, XCircle, Terminal, History, Clock
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import api from '../services/api';
@@ -32,6 +33,11 @@ const AdminDashboard: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [cronRunning, setCronRunning] = useState(false);
 
+  // New features state
+  const [selectedSubmission, setSelectedSubmission] = useState<any | null>(null);
+  const [submissionSearchQuery, setSubmissionSearchQuery] = useState('');
+  const [logSearchQuery, setLogSearchQuery] = useState('');
+
   // Custom Modal & Toast States
   const [studentToDelete, setStudentToDelete] = useState<StudentRequest | null>(null);
   const [studentToResetPassword, setStudentToResetPassword] = useState<StudentRequest | null>(null);
@@ -58,6 +64,31 @@ const AdminDashboard: React.FC = () => {
       return response.data.data;
     }
   });
+
+  // Fetch admin logs
+  const { data: logs = [], refetch: refetchLogs } = useQuery<any[]>({
+    queryKey: ['admin-logs'],
+    queryFn: async () => {
+      const response = await api.get('/admin/logs');
+      return response.data.data;
+    }
+  });
+
+  // Fetch submissions
+  const { data: submissions = [], refetch: refetchSubmissions } = useQuery<any[]>({
+    queryKey: ['admin-submissions'],
+    queryFn: async () => {
+      const response = await api.get('/admin/submissions');
+      return response.data.data;
+    }
+  });
+
+  // Automatically refetch all queries when navigation changes
+  useEffect(() => {
+    refetch();
+    refetchLogs();
+    refetchSubmissions();
+  }, [activeTab]);
 
   // Handle status update mutation
   const updateStatusMutation = useMutation({
@@ -236,10 +267,10 @@ const AdminDashboard: React.FC = () => {
 
       {/* Overview Dashboard Tab */}
       {activeTab === 'admin' && (
-        <div className="space-y-8">
+        <div className="space-y-8 animate-fade-in-up">
           {/* Stats Summary cards */}
-          <div className="grid gap-6 sm:grid-cols-3">
-            <div className="rounded-2xl border border-slate-200/60 bg-white p-6 shadow-sm dark:border-slate-800/80 dark:bg-slate-900">
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="rounded-2xl border border-slate-200/60 bg-white p-6 shadow-sm dark:border-slate-800/80 dark:bg-slate-900 transition hover:shadow-md">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Pending Approvals</p>
@@ -251,7 +282,7 @@ const AdminDashboard: React.FC = () => {
               </div>
             </div>
 
-            <div className="rounded-2xl border border-slate-200/60 bg-white p-6 shadow-sm dark:border-slate-800/80 dark:bg-slate-900">
+            <div className="rounded-2xl border border-slate-200/60 bg-white p-6 shadow-sm dark:border-slate-800/80 dark:bg-slate-900 transition hover:shadow-md">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Approved Students</p>
@@ -263,10 +294,10 @@ const AdminDashboard: React.FC = () => {
               </div>
             </div>
 
-            <div className="rounded-2xl border border-slate-200/60 bg-white p-6 shadow-sm dark:border-slate-800/80 dark:bg-slate-900">
+            <div className="rounded-2xl border border-slate-200/60 bg-white p-6 shadow-sm dark:border-slate-800/80 dark:bg-slate-900 transition hover:shadow-md">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Total Curriculum Tasks</p>
+                  <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Curriculum Tasks</p>
                   <h3 className="text-2xl font-black mt-1">5 Active</h3>
                 </div>
                 <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-blue-500/10 text-blue-500">
@@ -274,6 +305,122 @@ const AdminDashboard: React.FC = () => {
                 </div>
               </div>
             </div>
+
+            <div className="rounded-2xl border border-slate-200/60 bg-white p-6 shadow-sm dark:border-slate-800/80 dark:bg-slate-900 transition hover:shadow-md">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Total Code Runs</p>
+                  <h3 className="text-2xl font-black mt-1">{submissions.length} Submissions</h3>
+                </div>
+                <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-indigo-500/10 text-indigo-550 dark:text-indigo-400">
+                  <FileCode2 className="h-5 w-5" />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Advanced Analytics Grid */}
+          <div className="grid gap-6 md:grid-cols-2">
+            
+            {/* Visual Analytics 1: Student Status & XP Distribution */}
+            <div className="rounded-2xl border border-slate-200/60 bg-white p-6 shadow-sm dark:border-slate-800/80 dark:bg-slate-900 space-y-4">
+              <h3 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider">Student Status & Level Ranges</h3>
+              
+              <div className="space-y-4">
+                {/* Approved vs Pending ratio bar */}
+                <div>
+                  <div className="flex justify-between text-xs mb-1.5 font-bold">
+                    <span className="text-emerald-500">Approved ({students.length > 0 ? Math.round((totalApproved / students.length) * 100) : 0}%)</span>
+                    <span className="text-amber-500">Pending ({students.length > 0 ? Math.round((pendingCount / students.length) * 100) : 0}%)</span>
+                  </div>
+                  <div className="h-3 w-full bg-slate-100 rounded-full dark:bg-slate-800 overflow-hidden flex">
+                    <div 
+                      className="h-full bg-emerald-500 transition-all duration-500" 
+                      style={{ width: `${students.length > 0 ? (totalApproved / students.length) * 100 : 0}%` }}
+                      title={`Approved: ${totalApproved}`}
+                    ></div>
+                    <div 
+                      className="h-full bg-amber-500 transition-all duration-500" 
+                      style={{ width: `${students.length > 0 ? (pendingCount / students.length) * 100 : 0}%` }}
+                      title={`Pending: ${pendingCount}`}
+                    ></div>
+                  </div>
+                </div>
+
+                {/* Student XP Ranges */}
+                <div className="space-y-2 pt-1.5">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">XP Progression Distribution</span>
+                  <div className="grid grid-cols-3 gap-3 text-center">
+                    <div className="bg-slate-50 dark:bg-slate-950/60 p-2.5 rounded-xl border border-slate-100 dark:border-slate-850">
+                      <span className="text-[9px] font-bold text-slate-400 block truncate">Novice (&lt;1K XP)</span>
+                      <span className="text-lg font-black block mt-1">
+                        {students.filter(s => s.xp < 1000 && s.role === 'student').length}
+                      </span>
+                    </div>
+                    <div className="bg-slate-50 dark:bg-slate-950/60 p-2.5 rounded-xl border border-slate-100 dark:border-slate-850">
+                      <span className="text-[9px] font-bold text-slate-400 block truncate">Mid-level (1K-3K XP)</span>
+                      <span className="text-lg font-black text-jsyellow block mt-1">
+                        {students.filter(s => s.xp >= 1000 && s.xp < 3000 && s.role === 'student').length}
+                      </span>
+                    </div>
+                    <div className="bg-slate-50 dark:bg-slate-950/60 p-2.5 rounded-xl border border-slate-100 dark:border-slate-850">
+                      <span className="text-[9px] font-bold text-slate-400 block truncate">Master (&gt;3K XP)</span>
+                      <span className="text-lg font-black text-emerald-500 block mt-1">
+                        {students.filter(s => s.xp >= 3000 && s.role === 'student').length}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Visual Analytics 2: Submissions Ratio & Active Solvers */}
+            <div className="rounded-2xl border border-slate-200/60 bg-white p-6 shadow-sm dark:border-slate-800/80 dark:bg-slate-900 space-y-4">
+              <h3 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider">Submissions Success Ratio</h3>
+              
+              <div className="space-y-4">
+                {/* Success vs Fail ratio */}
+                {(() => {
+                  const passedSub = submissions.filter((s: any) => s.result === 'pass').length;
+                  const failedSub = submissions.filter((s: any) => s.result === 'fail').length;
+                  const totalSub = submissions.length;
+                  const successRate = totalSub > 0 ? Math.round((passedSub / totalSub) * 100) : 0;
+
+                  return (
+                    <>
+                      <div>
+                        <div className="flex justify-between text-xs mb-1.5 font-bold">
+                          <span className="text-emerald-500">Passed Tests ({passedSub})</span>
+                          <span className="text-rose-500">Failed ({failedSub})</span>
+                        </div>
+                        <div className="h-3 w-full bg-slate-100 rounded-full dark:bg-slate-800 overflow-hidden flex">
+                          <div 
+                            className="h-full bg-emerald-500 transition-all duration-500" 
+                            style={{ width: `${totalSub > 0 ? (passedSub / totalSub) * 100 : 0}%` }}
+                          ></div>
+                          <div 
+                            className="h-full bg-rose-500 transition-all duration-500" 
+                            style={{ width: `${totalSub > 0 ? (failedSub / totalSub) * 100 : 0}%` }}
+                          ></div>
+                        </div>
+                      </div>
+
+                      <div className="flex justify-between items-center text-xs pt-1">
+                        <span className="text-slate-400 font-bold uppercase tracking-wider">Overall Sandbox Success Rate</span>
+                        <span className={`font-black text-xs px-2.5 py-1 rounded-full ${
+                          successRate >= 70 ? 'bg-emerald-500/10 text-emerald-500' :
+                          successRate >= 40 ? 'bg-amber-500/10 text-amber-500' :
+                          'bg-rose-500/10 text-rose-500'
+                        }`}>
+                          {successRate}%
+                        </span>
+                      </div>
+                    </>
+                  );
+                })()}
+              </div>
+            </div>
+
           </div>
 
           {/* Quick Previews columns */}
@@ -357,7 +504,7 @@ const AdminDashboard: React.FC = () => {
 
       {/* Student Approvals Tab */}
       {activeTab === 'approvals' && (
-        <div className="space-y-4">
+        <div className="space-y-4 animate-fade-in-up">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="flex items-center gap-3.5">
               <h2 className="text-xl font-black tracking-tight">Student Approval Queue</h2>
@@ -371,7 +518,7 @@ const AdminDashboard: React.FC = () => {
                 className={`rounded-lg px-3 py-1.5 text-xs font-bold text-white transition flex items-center gap-1 animate-none ${
                   pendingCount > 0 
                     ? 'bg-emerald-600 hover:bg-emerald-500 cursor-pointer' 
-                    : 'bg-slate-200 dark:bg-slate-800 text-slate-450 dark:text-slate-600 cursor-not-allowed opacity-50'
+                    : 'bg-slate-200 dark:bg-slate-800 text-slate-450 dark:text-slate-650 cursor-not-allowed opacity-50'
                 }`}
                 title={pendingCount > 0 ? "Approve all pending students" : "No pending students to approve"}
               >
@@ -401,7 +548,7 @@ const AdminDashboard: React.FC = () => {
               <div className="overflow-x-auto">
                 <table className="w-full border-collapse text-sm">
                 <thead>
-                  <tr className="border-b border-slate-200 bg-slate-50 text-xs font-bold uppercase tracking-wider text-slate-500 dark:border-slate-850 dark:bg-slate-900/50 animate-pulse">
+                  <tr className="border-b border-slate-200 bg-slate-50 text-xs font-bold uppercase tracking-wider text-slate-500 dark:border-slate-850 dark:bg-slate-900/50">
                     <th className="px-6 py-4 text-left">Student Details</th>
                     <th className="px-6 py-4 text-left">Join Date</th>
                     <th className="px-6 py-4 text-left">Curriculum Stats</th>
@@ -478,6 +625,185 @@ const AdminDashboard: React.FC = () => {
                 </tbody>
               </table>
             </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Student Submissions Registry Tab */}
+      {activeTab === 'submissions' && (
+        <div className="space-y-4 animate-fade-in-up">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <h2 className="text-xl font-black tracking-tight flex items-center gap-2">
+              <FileCode2 className="h-5 w-5 text-jsyellow" />
+              Student Submissions Registry
+            </h2>
+            
+            {/* Search filter input */}
+            <div className="relative w-full sm:w-64">
+              <Search className="absolute left-3.5 top-3 h-4 w-4 text-slate-400" />
+              <input
+                type="text"
+                placeholder="Search by student or task..."
+                value={submissionSearchQuery}
+                onChange={(e) => setSubmissionSearchQuery(e.target.value)}
+                className="w-full rounded-xl border border-slate-200 bg-white py-2.5 pl-10 pr-4 text-xs outline-none focus:border-jsyellow dark:border-slate-800 dark:bg-slate-900"
+              />
+            </div>
+          </div>
+
+          <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-850 dark:bg-slate-900">
+            <div className="overflow-x-auto">
+              <table className="w-full border-collapse text-sm">
+                <thead>
+                  <tr className="border-b border-slate-200 bg-slate-50 text-xs font-bold uppercase tracking-wider text-slate-500 dark:border-slate-850 dark:bg-slate-900/50">
+                    <th className="px-6 py-4 text-left">Student Details</th>
+                    <th className="px-6 py-4 text-left">Task Title</th>
+                    <th className="px-6 py-4 text-left">Result Status</th>
+                    <th className="px-6 py-4 text-left">Runtime / XP</th>
+                    <th className="px-6 py-4 text-left">Submitted At</th>
+                    <th className="px-6 py-4 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-200 dark:divide-slate-855">
+                  {submissions.length === 0 ? (
+                    <tr>
+                      <td colSpan={6} className="p-8 text-center text-sm text-slate-550 dark:text-slate-400">
+                        No code submissions records found in sandbox databases.
+                      </td>
+                    </tr>
+                  ) : (
+                    submissions
+                      .filter((sub: any) => 
+                        sub.student_name.toLowerCase().includes(submissionSearchQuery.toLowerCase()) ||
+                        sub.student_email.toLowerCase().includes(submissionSearchQuery.toLowerCase()) ||
+                        sub.task_title.toLowerCase().includes(submissionSearchQuery.toLowerCase())
+                      )
+                      .map((sub: any, idx: number) => (
+                        <tr key={sub.id || idx} className="hover:bg-slate-50 dark:hover:bg-slate-850/50 transition-colors duration-150">
+                          <td className="px-6 py-4">
+                            <p className="font-bold text-slate-900 dark:text-white leading-none">{sub.student_name}</p>
+                            <p className="text-[10px] text-slate-400 mt-1">{sub.student_email}</p>
+                          </td>
+                          <td className="px-6 py-4 font-bold text-slate-700 dark:text-slate-350">
+                            {sub.task_title}
+                          </td>
+                          <td className="px-6 py-4">
+                            <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[9px] font-bold uppercase tracking-wide ${
+                              sub.result === 'pass' 
+                                ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/30 dark:text-emerald-400' 
+                                : 'bg-rose-100 text-rose-800 dark:bg-rose-950/30 dark:text-rose-450'
+                            }`}>
+                              {sub.result === 'pass' ? <CheckCircle2 className="h-3 w-3 text-emerald-505" /> : <XCircle className="h-3 w-3 text-rose-500" />}
+                              {sub.result === 'pass' ? 'Passed' : 'Failed'}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 text-xs">
+                            <p className="font-semibold text-slate-700 dark:text-slate-350">{sub.runtime_ms} ms</p>
+                            <p className="text-[10px] text-slate-400 mt-0.5">Score: +{sub.score} XP</p>
+                          </td>
+                          <td className="px-6 py-4 text-slate-500 text-xs">
+                            {new Date(sub.created_at).toLocaleDateString(undefined, { dateStyle: 'medium' })} {new Date(sub.created_at).toLocaleTimeString(undefined, { timeStyle: 'short' })}
+                          </td>
+                          <td className="px-6 py-4 text-right">
+                            <button
+                              onClick={() => setSelectedSubmission(sub)}
+                              className="rounded-lg bg-slate-900 px-3 py-1.5 text-xs font-bold text-white hover:bg-slate-800 transition dark:bg-slate-800 dark:hover:bg-slate-700 cursor-pointer flex items-center gap-1 ml-auto"
+                            >
+                              <Terminal className="h-3.5 w-3.5" /> View Code
+                            </button>
+                          </td>
+                        </tr>
+                      ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* System Activity Logs Tab */}
+      {activeTab === 'logs' && (
+        <div className="space-y-4 animate-fade-in-up">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <h2 className="text-xl font-black tracking-tight flex items-center gap-2">
+              <History className="h-5 w-5 text-jsyellow" />
+              Administrative Activity Logs
+            </h2>
+            
+            {/* Search filter input */}
+            <div className="relative w-full sm:w-64">
+              <Search className="absolute left-3.5 top-3 h-4 w-4 text-slate-400" />
+              <input
+                type="text"
+                placeholder="Search activity details..."
+                value={logSearchQuery}
+                onChange={(e) => setLogSearchQuery(e.target.value)}
+                className="w-full rounded-xl border border-slate-200 bg-white py-2.5 pl-10 pr-4 text-xs outline-none focus:border-jsyellow dark:border-slate-800 dark:bg-slate-900"
+              />
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-850 dark:bg-slate-900">
+            {logs.length === 0 ? (
+              <div className="text-center py-8 text-slate-400 text-sm">
+                No activity logs recorded yet. Perform actions to start the audit trail.
+              </div>
+            ) : (
+              <div className="relative border-l border-slate-150 pl-6 space-y-6 dark:border-slate-800 ml-3">
+                {logs
+                  .filter((log: any) => 
+                    log.action.toLowerCase().includes(logSearchQuery.toLowerCase()) ||
+                    log.details.toLowerCase().includes(logSearchQuery.toLowerCase())
+                  )
+                  .map((log: any, idx: number) => {
+                    let logIcon = <Activity className="h-3.5 w-3.5" />;
+                    let iconBg = 'bg-slate-100 text-slate-500 dark:bg-slate-800';
+
+                    if (log.action === 'approve_student') {
+                      logIcon = <Users className="h-3.5 w-3.5" />;
+                      iconBg = 'bg-emerald-500/10 text-emerald-500';
+                    } else if (log.action === 'reject_student') {
+                      logIcon = <X className="h-3.5 w-3.5" />;
+                      iconBg = 'bg-rose-500/10 text-rose-500';
+                    } else if (log.action === 'approve_all') {
+                      logIcon = <Check className="h-3.5 w-3.5" />;
+                      iconBg = 'bg-emerald-500/20 text-emerald-605';
+                    } else if (log.action === 'reset_password') {
+                      logIcon = <Key className="h-3.5 w-3.5" />;
+                      iconBg = 'bg-amber-500/10 text-amber-500';
+                    } else if (log.action === 'delete_student') {
+                      logIcon = <Trash2 className="h-3.5 w-3.5" />;
+                      iconBg = 'bg-rose-500/20 text-rose-600';
+                    }
+
+                    return (
+                      <div key={log.id || idx} className="relative group">
+                        {/* Timeline Bullet */}
+                        <div className={`absolute -left-[35px] top-1.5 flex h-6 w-6 items-center justify-center rounded-full border border-white dark:border-slate-900 ${iconBg} shadow-sm z-10`}>
+                          {logIcon}
+                        </div>
+
+                        {/* Log card */}
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-left">
+                          <div>
+                            <span className="inline-block text-[9px] font-bold uppercase tracking-wider text-slate-400 bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded">
+                              {log.action}
+                            </span>
+                            <p className="text-xs text-slate-850 dark:text-slate-200 mt-1 font-semibold leading-relaxed">
+                              {log.details}
+                            </p>
+                          </div>
+                          <div className="flex items-center gap-1.5 text-[10px] text-slate-400 shrink-0 font-mono">
+                            <Clock className="h-3 w-3" />
+                            <span>{new Date(log.created_at).toLocaleDateString(undefined, { dateStyle: 'medium' })} {new Date(log.created_at).toLocaleTimeString(undefined, { timeStyle: 'short' })}</span>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+              </div>
             )}
           </div>
         </div>
@@ -769,6 +1095,95 @@ const AdminDashboard: React.FC = () => {
                     {updatePasswordMutation.isPending ? 'Updating...' : 'Save Password'}
                   </button>
                 </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Code Preview Overlay Modal */}
+      <AnimatePresence>
+        {selectedSubmission && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setSelectedSubmission(null)}
+              className="absolute inset-0 bg-slate-950/60 backdrop-blur-sm"
+            />
+
+            {/* Modal Box */}
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="relative w-full max-w-2xl rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl dark:border-slate-800 dark:bg-slate-955 text-slate-900 dark:text-white flex flex-col max-h-[85vh] z-10"
+            >
+              {/* Header */}
+              <div className="flex items-center justify-between border-b border-slate-150 pb-3 dark:border-slate-850">
+                <div>
+                  <h3 className="text-base font-black tracking-tight text-left">Code Submission Viewer</h3>
+                  <p className="text-[10px] text-slate-400 mt-0.5 text-left">
+                    Student: <span className="font-bold text-slate-750 dark:text-slate-250">{selectedSubmission.student_name}</span> ({selectedSubmission.student_email})
+                  </p>
+                </div>
+                <button 
+                  onClick={() => setSelectedSubmission(null)}
+                  className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition"
+                >
+                  <X className="h-4.5 w-4.5" />
+                </button>
+              </div>
+
+              {/* Code Panel */}
+              <div className="flex-1 overflow-y-auto py-5 space-y-4 text-left">
+                {/* Meta details cards */}
+                <div className="grid grid-cols-3 gap-3 text-xs bg-slate-50 dark:bg-slate-900/40 border border-slate-100 dark:border-slate-850 rounded-xl p-3">
+                  <div>
+                    <span className="text-[9px] font-bold uppercase tracking-wider text-slate-400 block">Challenge</span>
+                    <span className="font-bold text-slate-850 dark:text-slate-200 mt-0.5 block truncate">{selectedSubmission.task_title}</span>
+                  </div>
+                  <div>
+                    <span className="text-[9px] font-bold uppercase tracking-wider text-slate-400 block">Status</span>
+                    <span className={`inline-flex items-center gap-1 font-bold mt-0.5 ${
+                      selectedSubmission.result === 'pass' ? 'text-emerald-500' : 'text-rose-500'
+                    }`}>
+                      {selectedSubmission.result === 'pass' ? 'PASSED' : 'FAILED'}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-[9px] font-bold uppercase tracking-wider text-slate-400 block">Performance</span>
+                    <span className="font-mono mt-0.5 block">{selectedSubmission.runtime_ms} ms</span>
+                  </div>
+                </div>
+
+                {/* Editor display */}
+                <div className="relative rounded-xl bg-slate-950 p-4 border border-slate-900 font-mono text-[11px] leading-relaxed text-emerald-450 overflow-x-auto min-h-[160px] max-h-[360px]">
+                  <span className="absolute top-2 right-3 font-sans text-[8px] font-black tracking-wider text-slate-600 select-none">JAVASCRIPT SOURCE</span>
+                  <pre className="whitespace-pre">{selectedSubmission.code}</pre>
+                </div>
+
+                {/* Execution output display */}
+                {selectedSubmission.output && (
+                  <div className="space-y-1.5 text-left">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-450 block">Console output logs:</span>
+                    <div className="rounded-xl bg-slate-900 p-3 font-mono text-[10px] text-slate-350 border border-slate-850 whitespace-pre-wrap max-h-32 overflow-y-auto">
+                      {selectedSubmission.output}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Footer */}
+              <div className="border-t border-slate-150 pt-3 flex justify-end dark:border-slate-855">
+                <button
+                  onClick={() => setSelectedSubmission(null)}
+                  className="rounded-xl bg-jsyellow px-5 py-2 text-xs font-bold text-black hover:bg-jsyellow-hover transition shadow-md shadow-jsyellow/10"
+                >
+                  Close Viewer
+                </button>
               </div>
             </motion.div>
           </div>

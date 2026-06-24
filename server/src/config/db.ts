@@ -150,6 +150,16 @@ export const initializeDatabase = async (): Promise<void> => {
       );
     `);
 
+    // Create Admin Logs Table
+    await db.execute(`
+      CREATE TABLE IF NOT EXISTS admin_logs (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        action TEXT NOT NULL,
+        details TEXT NOT NULL,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+
     // Check if students table is empty or needs correct seed structure
     const result = await db.execute('SELECT count(*) as count FROM students;');
     const count = Number(result.rows[0].count);

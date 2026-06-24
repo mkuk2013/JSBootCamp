@@ -3,7 +3,7 @@ import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
 import { useTheme } from '../context/ThemeContext';
 import { 
   Sun, Moon, Laptop, Users, ShieldAlert, Sparkles, 
-  Settings, LogOut, Menu, X, BarChart 
+  Settings, LogOut, Menu, X, BarChart, FileCode2, Activity
 } from 'lucide-react';
 import JSIcon from '../components/JSIcon';
 
@@ -35,6 +35,8 @@ const AdminLayout: React.FC = () => {
   const menuItems = [
     { name: 'Admin Overview', path: '/admin', icon: BarChart },
     { name: 'Student Approvals', path: '/admin/approvals', icon: Users },
+    { name: 'Submissions Registry', path: '/admin/submissions', icon: FileCode2 },
+    { name: 'Activity Logs', path: '/admin/logs', icon: Activity },
     { name: 'AI Module Generator', path: '/admin/generator', icon: Sparkles },
     { name: 'System Settings', path: '/admin/settings', icon: Settings },
   ];

@@ -5,6 +5,62 @@ import { sendApprovalEmail } from '../utils/mail';
 
 const router = Router();
 
+// Helper to log admin activity
+async function logAdminAction(action: string, details: string) {
+  try {
+    await db.execute({
+      sql: 'INSERT INTO admin_logs (action, details) VALUES (?, ?);',
+      args: [action, details]
+    });
+  } catch (error) {
+    console.error('Failed to log admin action:', error);
+  }
+}
+
+// GET admin activity logs
+router.get('/logs', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const result = await db.execute("SELECT id, action, details, created_at FROM admin_logs ORDER BY created_at DESC LIMIT 150;");
+    res.json({
+      success: true,
+      data: result.rows
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// GET all student submissions registry
+router.get('/submissions', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const result = await db.execute(`
+      SELECT 
+        s.id, 
+        s.user_id, 
+        st.name as student_name, 
+        st.email as student_email, 
+        s.task_id, 
+        t.title as task_title, 
+        s.code, 
+        s.result, 
+        s.score,
+        s.output,
+        s.runtime_ms, 
+        s.created_at 
+      FROM submissions s
+      JOIN students st ON s.user_id = st.id
+      JOIN tasks t ON s.task_id = t.id
+      ORDER BY s.created_at DESC;
+    `);
+    res.json({
+      success: true,
+      data: result.rows
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
 // GET all students
 router.get('/students', async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -43,6 +99,9 @@ router.post('/students/approve-all', async (req: Request, res: Response, next: N
         console.error(`Failed to send approval email to ${student.email}:`, err);
       }
     }
+
+    // Log audit log
+    await logAdminAction('approve_all', `Bulk approved all ${pendingStudents.length} pending student registration requests.`);
 
     res.json({
       success: true,
@@ -96,6 +155,9 @@ router.put('/students/:id/status', async (req: Request, res: Response, next: Nex
       await sendApprovalEmail(student.email as string, student.name as string);
     }
 
+    // Log audit log
+    await logAdminAction(status === 'approved' ? 'approve_student' : 'reject_student', `Updated student status to "${status}" for student ${student.name} (${student.email}).`);
+
     res.json({
       success: true,
       message: `Student registration status updated to ${status}.`
@@ -141,6 +203,9 @@ router.put('/students/:id/password', async (req: Request, res: Response, next: N
       args: [hashedPassword, id]
     });
 
+    // Log audit log
+    await logAdminAction('reset_password', `Reset login password for student ${checkUser.rows[0].name} (${checkUser.rows[0].email}).`);
+
     res.json({
       success: true,
       message: "Student's login password updated successfully."
@@ -172,6 +237,9 @@ router.delete('/students/:id', async (req: Request, res: Response, next: NextFun
     await db.execute({ sql: 'DELETE FROM submissions WHERE user_id = ?;', args: [id] });
     await db.execute({ sql: 'DELETE FROM user_achievements WHERE user_id = ?;', args: [id] });
     await db.execute({ sql: 'DELETE FROM students WHERE id = ?;', args: [id] });
+
+    // Log audit log
+    await logAdminAction('delete_student', `Permanently deleted account and all active progress data for student ${checkUser.rows[0].name} (${checkUser.rows[0].email}).`);
 
     res.json({
       success: true,
