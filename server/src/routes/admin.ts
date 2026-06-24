@@ -18,6 +18,41 @@ router.get('/students', async (req: Request, res: Response, next: NextFunction) 
   }
 });
 
+// POST approve all pending students
+router.post('/students/approve-all', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    // Select all pending students
+    const result = await db.execute("SELECT id, name, email FROM students WHERE role = 'student' AND status = 'pending';");
+    const pendingStudents = result.rows;
+
+    if (pendingStudents.length === 0) {
+      return res.json({
+        success: true,
+        message: 'No pending student accounts to approve.'
+      });
+    }
+
+    // Update status to 'approved' for all pending students
+    await db.execute("UPDATE students SET status = 'approved' WHERE role = 'student' AND status = 'pending';");
+
+    // Proactively send email approvals in background
+    for (const student of pendingStudents) {
+      try {
+        await sendApprovalEmail(student.email as string, student.name as string);
+      } catch (err) {
+        console.error(`Failed to send approval email to ${student.email}:`, err);
+      }
+    }
+
+    res.json({
+      success: true,
+      message: `Successfully approved all ${pendingStudents.length} pending student accounts.`
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
 // UPDATE student status (Approve / Reject)
 router.put('/students/:id/status', async (req: Request, res: Response, next: NextFunction) => {
   try {

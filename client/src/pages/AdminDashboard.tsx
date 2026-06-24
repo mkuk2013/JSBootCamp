@@ -74,6 +74,21 @@ const AdminDashboard: React.FC = () => {
     }
   });
 
+  // Handle bulk approve mutation
+  const approveAllMutation = useMutation({
+    mutationFn: async () => {
+      const response = await api.post('/admin/students/approve-all');
+      return response.data;
+    },
+    onSuccess: (res) => {
+      refetch();
+      showToast(res.message || 'All pending students approved successfully.', 'success');
+    },
+    onError: (err: any) => {
+      showToast(err.response?.data?.error?.message || 'Failed to approve all students.', 'error');
+    }
+  });
+
   // Trigger auto-approve cron mutation
   const triggerAutoApprove = async () => {
     setCronRunning(true);
@@ -344,7 +359,23 @@ const AdminDashboard: React.FC = () => {
       {activeTab === 'approvals' && (
         <div className="space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <h2 className="text-xl font-black tracking-tight">Student Approval Queue</h2>
+            <div className="flex items-center gap-3.5">
+              <h2 className="text-xl font-black tracking-tight">Student Approval Queue</h2>
+              {pendingCount > 0 && (
+                <button
+                  onClick={() => {
+                    if (window.confirm(`Are you sure you want to approve all ${pendingCount} pending student registration requests?`)) {
+                      approveAllMutation.mutate();
+                    }
+                  }}
+                  disabled={approveAllMutation.isPending}
+                  className="rounded-lg bg-emerald-600 hover:bg-emerald-500 px-3 py-1.5 text-xs font-bold text-white transition disabled:opacity-50 flex items-center gap-1 cursor-pointer animate-none"
+                  title="Approve all pending students"
+                >
+                  <Check className="h-3.5 w-3.5" /> Approve All ({pendingCount})
+                </button>
+              )}
+            </div>
             
             {/* Search filter input */}
             <div className="relative w-full sm:w-64">
