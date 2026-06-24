@@ -87,6 +87,9 @@ const Learn: React.FC = () => {
   // Syllabus drawer state
   const [isSyllabusOpen, setIsSyllabusOpen] = useState(false);
 
+  // Mobile navigation tab state
+  const [mobileTab, setMobileTab] = useState<'docs' | 'editor' | 'console'>('docs');
+
   // Particles celebration state
   const [particles, setParticles] = useState<{ id: number; x: number; y: number; color: string; angle: number; speed: number }[]>([]);
 
@@ -610,10 +613,46 @@ const Learn: React.FC = () => {
   }
 
   return (
-    <div className="fixed inset-x-0 bottom-0 top-16 flex overflow-hidden bg-slate-50 text-slate-900 transition-colors duration-300 dark:bg-slate-950 dark:text-slate-100">
+    <div className="fixed inset-x-0 bottom-0 top-16 flex flex-col lg:flex-row overflow-hidden bg-slate-50 text-slate-900 transition-colors duration-300 dark:bg-slate-950 dark:text-slate-100">
       
+      {/* Mobile Tab Navigation Bar */}
+      <div className="flex lg:hidden shrink-0 border-b border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900 text-xs font-bold shadow-sm">
+        <button
+          onClick={() => setMobileTab('docs')}
+          className={`flex-1 py-3.5 text-center border-b-2 transition-all duration-200 ${
+            mobileTab === 'docs' 
+              ? 'border-jsyellow text-slate-900 dark:text-white bg-slate-50/50 dark:bg-slate-850/20' 
+              : 'border-transparent text-slate-400 hover:text-slate-600 dark:hover:text-slate-200'
+          }`}
+        >
+          {activeTab === 'theory' ? '📖 Theory' : '🎯 Task'}
+        </button>
+        <button
+          onClick={() => setMobileTab('editor')}
+          className={`flex-1 py-3.5 text-center border-b-2 transition-all duration-200 ${
+            mobileTab === 'editor' 
+              ? 'border-jsyellow text-slate-900 dark:text-white bg-slate-50/50 dark:bg-slate-850/20' 
+              : 'border-transparent text-slate-400 hover:text-slate-600 dark:hover:text-slate-200'
+          }`}
+        >
+          💻 Editor
+        </button>
+        <button
+          onClick={() => setMobileTab('console')}
+          className={`flex-1 py-3.5 text-center border-b-2 transition-all duration-200 ${
+            mobileTab === 'console' 
+              ? 'border-jsyellow text-slate-900 dark:text-white bg-slate-50/50 dark:bg-slate-850/20' 
+              : 'border-transparent text-slate-400 hover:text-slate-600 dark:hover:text-slate-200'
+          }`}
+        >
+          📟 Console {testResults.length > 0 && `(${testResults.filter(r => r.passed).length}/${testResults.length})`}
+        </button>
+      </div>
+
       {/* Left panel: Curriculum list sidebar + Task description */}
-      <div className="flex w-1/2 flex-col border-r border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">
+      <div className={`w-full lg:w-1/2 flex-col border-r border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900 ${
+        mobileTab === 'docs' ? 'flex' : 'hidden lg:flex'
+      }`}>
         
         {/* Module Header */}
         <div className="flex h-12 shrink-0 items-center justify-between border-b border-slate-200 px-6 dark:border-slate-800">
@@ -813,8 +852,11 @@ const Learn: React.FC = () => {
       </div>
 
       {/* Right panel: Monaco Editor and Output Terminal */}
-      <div className="flex w-1/2 flex-col">
-        {/* Editor Toolbar */}
+      <div className={`w-full lg:w-1/2 flex-col ${
+        mobileTab !== 'docs' ? 'flex' : 'hidden lg:flex'
+      }`}>
+        <div className={`flex-1 flex flex-col ${mobileTab === 'editor' ? 'flex' : 'hidden lg:flex'}`}>
+          {/* Editor Toolbar */}
         <div className="flex h-11 shrink-0 items-center justify-between border-b border-slate-200 bg-slate-50 px-3 dark:border-slate-800 dark:bg-slate-900/80">
           <div className="flex items-center gap-1">
             {/* Font size controls */}
@@ -923,9 +965,12 @@ const Learn: React.FC = () => {
             </div>
           )}
         </div>
+      </div>
 
-        {/* Output Console area */}
-        <div className="h-72 flex flex-col bg-slate-950 text-white font-mono text-xs">
+      {/* Output Console area */}
+      <div className={`flex flex-col bg-slate-950 text-white font-mono text-xs ${
+        mobileTab === 'console' ? 'flex-1 flex' : 'hidden lg:flex lg:h-72 lg:flex-none'
+      }`}>
           <div className="flex h-10 shrink-0 items-center justify-between border-b border-slate-900 bg-slate-900 px-4">
             <span className="flex items-center gap-2 font-bold uppercase tracking-wider text-slate-500">
               <Terminal className="h-4 w-4" /> Console

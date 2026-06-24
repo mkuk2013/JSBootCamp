@@ -279,8 +279,8 @@ const AdminDashboard: React.FC = () => {
               ) : (
                 <div className="divide-y divide-slate-100 dark:divide-slate-800">
                   {pendingRequests.slice(0, 3).map((req) => (
-                    <div key={req.id} className="py-3 flex items-center justify-between first:pt-0 last:pb-0">
-                      <div>
+                    <div key={req.id} className="py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2 first:pt-0 last:pb-0">
+                      <div className="text-left">
                         <h4 className="text-xs font-bold text-slate-900 dark:text-white">{req.name}</h4>
                         <p className="text-[10px] text-slate-400">{req.email}</p>
                       </div>
@@ -365,7 +365,8 @@ const AdminDashboard: React.FC = () => {
             ) : filteredStudents.length === 0 ? (
               <div className="p-8 text-center text-sm text-slate-500">No student profiles match your search criteria.</div>
             ) : (
-              <table className="w-full border-collapse text-sm">
+              <div className="overflow-x-auto">
+                <table className="w-full border-collapse text-sm">
                 <thead>
                   <tr className="border-b border-slate-200 bg-slate-50 text-xs font-bold uppercase tracking-wider text-slate-500 dark:border-slate-850 dark:bg-slate-900/50 animate-pulse">
                     <th className="px-6 py-4 text-left">Student Details</th>
@@ -443,6 +444,7 @@ const AdminDashboard: React.FC = () => {
                   ))}
                 </tbody>
               </table>
+            </div>
             )}
           </div>
         </div>

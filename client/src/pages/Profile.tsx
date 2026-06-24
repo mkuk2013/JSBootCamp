@@ -299,7 +299,7 @@ const Profile: React.FC = () => {
       {/* Profile Overview header card */}
       <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-850 dark:bg-slate-900 md:p-8">
         <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
-          <div className="flex items-center gap-4.5">
+          <div className="flex flex-col sm:flex-row items-center sm:items-start text-center sm:text-left gap-4.5">
             {/* Avatar presentation */}
             <div className="relative group/avatar shrink-0 h-16 w-16">
               {user.avatar_url ? (
@@ -340,7 +340,7 @@ const Profile: React.FC = () => {
             {/* Profile fields: View mode vs Edit mode */}
             {!isEditing ? (
               <div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center justify-center sm:justify-start gap-2">
                   <h1 className="text-2xl font-black text-slate-900 dark:text-white leading-none">{user.name}</h1>
                   <button 
                     onClick={() => setIsEditing(true)}
@@ -350,16 +350,16 @@ const Profile: React.FC = () => {
                     <Edit2 className="h-4 w-4" />
                   </button>
                 </div>
-                <p className="text-sm text-slate-500 dark:text-slate-455 flex items-center gap-1.5 mt-1.5">
+                <p className="text-sm text-slate-500 dark:text-slate-455 flex items-center justify-center sm:justify-start gap-1.5 mt-1.5">
                   <Mail className="h-4 w-4" /> {user.email}
                 </p>
-                <p className="text-xs text-slate-400 flex items-center gap-1.5 mt-1">
+                <p className="text-xs text-slate-400 flex items-center justify-center sm:justify-start gap-1.5 mt-1">
                   <Calendar className="h-4 w-4" /> Member since {joinedDate}
                 </p>
               </div>
             ) : (
-              <div className="flex-1 space-y-2 max-w-xs">
-                <div>
+              <div className="flex-1 space-y-2 max-w-xs flex flex-col items-center sm:items-start">
+                <div className="w-full">
                   <input
                     type="text"
                     value={editName}
@@ -369,7 +369,7 @@ const Profile: React.FC = () => {
                     required
                   />
                 </div>
-                <div>
+                <div className="w-full">
                   <input
                     type="email"
                     value={editEmail}
@@ -407,10 +407,10 @@ const Profile: React.FC = () => {
           </div>
           
           {!isEditing && (
-            <div>
+            <div className="w-full md:w-auto">
               <button 
                 onClick={handleDownloadCertificate}
-                className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-bold text-slate-700 shadow-sm transition hover:bg-slate-50 dark:border-slate-850 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800 cursor-pointer"
+                className="w-full md:w-auto justify-center inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-bold text-slate-700 shadow-sm transition hover:bg-slate-50 dark:border-slate-850 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800 cursor-pointer"
               >
                 <Download className="h-4.5 w-4.5" />
                 Download JS Certificate

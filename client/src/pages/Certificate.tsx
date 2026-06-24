@@ -74,10 +74,10 @@ const Certificate: React.FC = () => {
         </div>
 
         {isUnlocked && (
-          <div className="flex gap-2 print:hidden">
+          <div className="flex gap-2 w-full md:w-auto print:hidden">
             <button
               onClick={handlePrint}
-              className="inline-flex items-center gap-2 rounded-xl bg-jsyellow px-4 py-2 text-xs font-bold text-black hover:bg-jsyellow-hover transition shadow-md shadow-jsyellow/10"
+              className="w-full md:w-auto justify-center inline-flex items-center gap-2 rounded-xl bg-jsyellow px-4 py-2 text-xs font-bold text-black hover:bg-jsyellow-hover transition shadow-md shadow-jsyellow/10"
             >
               <Printer className="h-4 w-4" /> Print / Save PDF
             </button>

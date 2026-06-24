@@ -82,7 +82,8 @@ const Leaderboard: React.FC = () => {
 
           {/* Leaderboard Table List */}
           <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-850 dark:bg-slate-900">
-            <table className="w-full border-collapse text-left text-sm">
+            <div className="overflow-x-auto">
+              <table className="w-full border-collapse text-left text-sm">
               <thead>
                 <tr className="border-b border-slate-200 bg-slate-50 text-xs font-bold uppercase tracking-wider text-slate-500 dark:border-slate-850 dark:bg-slate-900/50">
                   <th className="px-6 py-4">Rank</th>
@@ -122,6 +123,7 @@ const Leaderboard: React.FC = () => {
               </tbody>
             </table>
           </div>
+        </div>
         </>
       )}
     </div>
